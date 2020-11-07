@@ -250,10 +250,10 @@ void fluidsynth_tilde_setup(void) {
      */
     class_addmethod(fluidsynth_tilde_class,
                     (t_method)fluidsynth_tilde_dsp, gensym("dsp"), 0);
-    
+
     class_addmethod(fluidsynth_tilde_class,
                     (t_method)fluidsynth_tilde_load_font, gensym("load"), A_SYMBOL, 0);
-                    
+
     class_addmethod(fluidsynth_tilde_class, (t_method)fluidsynth_tilde_note_in, gensym("note_in"), A_GIMME,0);
     class_addmethod(fluidsynth_tilde_class, (t_method)fluidsynth_tilde_pgm_change_in, gensym("pgm_change_in"), A_GIMME,0);
 
