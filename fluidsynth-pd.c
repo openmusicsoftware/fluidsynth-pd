@@ -32,7 +32,7 @@ typedef struct _fluidsynth_tilde {
     t_object  x_obj;
     fluid_synth_t *synth;
     fluid_settings_t *settings;
-    t_inlet *x_note_in,*x_pgm_change_in;
+    t_inlet *x_note_in,*x_pgm_change_in,*x_control_change_in;
     t_outlet *x_outleft;
     t_outlet *x_outright;
     
@@ -117,6 +117,7 @@ void fluidsynth_tilde_free(t_fluidsynth_tilde *x)
     outlet_free(x->x_outright);
     inlet_free(x->x_note_in);
     inlet_free(x->x_pgm_change_in);
+    inlet_free(x->x_control_change_in);
     
     /* delete fluid synth instance */
     delete_fluid_synth(x->synth);
@@ -150,7 +151,8 @@ void *fluidsynth_tilde_new(void)
     /*create inlets*/
     x->x_note_in = inlet_new(&x->x_obj, &x->x_obj.ob_pd, &s_list, gensym("note_in"));
     x->x_pgm_change_in = inlet_new(&x->x_obj, &x->x_obj.ob_pd, &s_list, gensym("pgm_change_in"));
-
+    x->x_control_change_in = inlet_new(&x->x_obj, &x->x_obj.ob_pd, &s_list, gensym("control_change_in"));
+    
     /* create a new signal-outlet */
     x->x_outleft = outlet_new(&x->x_obj, &s_signal);
     x->x_outright = outlet_new(&x->x_obj, &s_signal);
@@ -206,6 +208,35 @@ void fluid_pgm_change_in(t_fluidsynth_tilde *x,int channel,int pgm) {
     post("pgm change chnl : %i  pgm : %i",channel,pgm);
 }
 
+
+int bank_ctrl_msb = 0;
+int xcnl = 0;
+
+void fluid_control_change_in(t_fluidsynth_tilde *x,int channel,int ctrlnum,int value) {
+    if (x->synth == NULL) {return;}
+    if (channel < 1 || channel > 16) {return;}
+    if (ctrlnum < 0 || ctrlnum >128) {return;}
+
+    // begin a sequence
+    if (ctrlnum == 0) {
+        bank_ctrl_msb = value;
+        xcnl = channel;
+        return;
+    }
+    // end a sequence
+    if (ctrlnum == 32 && xcnl == channel) {
+        int bank = bank_ctrl_msb*128 + value;
+        fluid_synth_bank_select(x->synth, channel, bank);
+        xcnl = -1;
+        bank_ctrl_msb = 0;
+        return;
+    }
+    
+    fluid_synth_cc(x->synth, channel, ctrlnum, value);
+    
+    post("control change chnl : %i  num : %i val : %i",channel,ctrlnum,value);
+}
+
 void fluidsynth_tilde_note_in(t_fluidsynth_tilde *x,t_symbol *sym,t_int argc, t_atom *argv){
 switch(argc){
         //lists must have 3 ints
@@ -232,6 +263,19 @@ switch(argc){
     }
 }
 
+void fluidsynth_tilde_control_change_in(t_fluidsynth_tilde *x,t_symbol *sym,t_int argc, t_atom *argv){
+switch(argc){
+        //lists must have 2 ints
+    case 3:
+        // the list is  in this order value, controller,channel
+        fluid_control_change_in(x, atom_getint(argv+2), atom_getint(argv+1),atom_getint(argv));
+        
+        break;
+    default:
+        error("error: three arguments are needed for control change");
+    }
+}
+
 
 /**
  * define the function-space of the class
@@ -250,12 +294,12 @@ void fluidsynth_tilde_setup(void) {
      */
     class_addmethod(fluidsynth_tilde_class,
                     (t_method)fluidsynth_tilde_dsp, gensym("dsp"), 0);
-
+    
     class_addmethod(fluidsynth_tilde_class,
                     (t_method)fluidsynth_tilde_load_font, gensym("load"), A_SYMBOL, 0);
-
+                    
     class_addmethod(fluidsynth_tilde_class, (t_method)fluidsynth_tilde_note_in, gensym("note_in"), A_GIMME,0);
     class_addmethod(fluidsynth_tilde_class, (t_method)fluidsynth_tilde_pgm_change_in, gensym("pgm_change_in"), A_GIMME,0);
-
+    class_addmethod(fluidsynth_tilde_class, (t_method)fluidsynth_tilde_control_change_in, gensym("control_change_in"), A_GIMME,0);
     
 }
