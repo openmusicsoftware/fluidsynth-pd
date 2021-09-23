@@ -5,12 +5,52 @@
 
 cmake_minimum_required(VERSION 3.4.1)
 
+project(fluidsynth-pd)
+
 #set(CMAKE_CXX_STANDARD 14)
 #set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #set(CMAKE_CXX_EXTENSIONS OFF)
 #set(CMAKE_SUPPRESS_REGENERATION true)
 #set(CMAKE_MACOSX_RPATH Off)
 #set(CMAKE_OSX_ARCHITECTURES "i386;x86_64")
+
+
+set(DARWIN 0)
+set(BUILD_JNI 0)
+set(LINUX 0)
+set(WINDOWS 0)
+set(PICO 0)
+
+message("CMAKE SYSTEM IS :${CMAKE_SYSTEM_NAME}.")
+if(ANDROID)
+ message("Android is active")
+endif(ANDROID)
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+ set(LINUX 1)
+ message("Linux is active")
+endif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+ set(WINDOWS 1)
+ message("WINDOWS is active")
+endif(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "PICO")
+ set(PICO 1)
+ message("PICO is active")
+endif(${CMAKE_SYSTEM_NAME} STREQUAL "PICO")
+
+if(ANDROID)
+  set(CMAKE_EXE_LINKER_FLAGS "-fPIE -pie")
+endif(ANDROID)
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+ set(DARWIN 1)
+ message("DARWIN is active")
+endif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+
+
 
 
 set (PROJECT_NAME "fluidsynthpd")
@@ -33,6 +73,8 @@ add_library(
         IMPORTED
 )
 
+
+IF(ANDROID)
 set_target_properties( # Specifies the target library.
         pdlib
 
@@ -54,6 +96,34 @@ set_target_properties( # Specifies the target library.
 
         # Provides the path to the library you want to import.
        ${CMAKE_CURRENT_LIST_DIR}/../../app/src/main/jniLibs/${ANDROID_ABI}/libfluidsynth.so )
+
+ENDIF(ANDROID)
+
+IF(WINDOWS)
+
+set_target_properties( # Specifies the target library.
+        pdlib
+
+        # Specifies the parameter you want to define.
+        PROPERTIES IMPORTED_LOCATION
+
+        # Provides the path to the library you want to import.
+        ${CMAKE_CURRENT_LIST_DIR}/../pd.dll
+
+        )
+
+set_target_properties( # Specifies the target library.
+        fluidsynthlib
+
+        # Specifies the parameter you want to define.
+        PROPERTIES IMPORTED_LOCATION
+
+        # Provides the path to the library you want to import.
+       ${CMAKE_CURRENT_LIST_DIR}/../fluidsynth.dll )
+
+ENDIF(WINDOWS)
+
+
 
 
 #manipulate the filename output
