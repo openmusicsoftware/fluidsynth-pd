@@ -5,59 +5,152 @@
 
 cmake_minimum_required(VERSION 3.4.1)
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-SET(CMAKE_EXE_LINKER_FLAGS "-undefined dynamic_lookup")
-set(CMAKE_SUPPRESS_REGENERATION true)
-set(CMAKE_MACOSX_RPATH Off)
+project(fluidsynth-pd)
+
+#set(CMAKE_CXX_STANDARD 14)
+#set(CMAKE_CXX_STANDARD_REQUIRED ON)
+#set(CMAKE_CXX_EXTENSIONS OFF)
+#set(CMAKE_SUPPRESS_REGENERATION true)
+#set(CMAKE_MACOSX_RPATH Off)
 #set(CMAKE_OSX_ARCHITECTURES "i386;x86_64")
 
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/libs/libpd)
+
+set(DARWIN 0)
+set(BUILD_JNI 0)
+set(LINUX 0)
+set(WINDOWS 0)
+set(PICO 0)
+
+message("CMAKE SYSTEM IS :${CMAKE_SYSTEM_NAME}.")
+if(ANDROID)
+ message("Android is active")
+endif(ANDROID)
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+ set(LINUX 1)
+ message("Linux is active")
+endif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+ set(WINDOWS 1)
+ message("WINDOWS is active")
+endif(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "PICO")
+ set(PICO 1)
+ message("PICO is active")
+endif(${CMAKE_SYSTEM_NAME} STREQUAL "PICO")
+
+if(ANDROID)
+  set(CMAKE_EXE_LINKER_FLAGS "-fPIE -pie")
+endif(ANDROID)
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+ set(DARWIN 1)
+ message("DARWIN is active")
+endif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+
+
+
+
+set (PROJECT_NAME "fluidsynthpd")
+
+include_directories( ${CMAKE_CURRENT_LIST_DIR})
 
 add_library(
-        fluidsynth-pd
+        ${PROJECT_NAME}
         SHARED
         ${CMAKE_CURRENT_LIST_DIR}/fluidsynth-pd.c
 )
 
-add_library( fluidsynth
+add_library( fluidsynthlib
         SHARED
         IMPORTED )
 
+add_library(
+        pdlib
+        SHARED
+        IMPORTED
+)
+
+
+IF(ANDROID)
 set_target_properties( # Specifies the target library.
-        fluidsynth
+        pdlib
 
         # Specifies the parameter you want to define.
         PROPERTIES IMPORTED_LOCATION
 
         # Provides the path to the library you want to import.
-       ${CMAKE_CURRENT_LIST_DIR}/libs/libfluidsynth.dylib )
+        ${CMAKE_CURRENT_LIST_DIR}/libs/${ANDROID_ABI}/libpd.so
+
+        )
+
+
+
+set_target_properties( # Specifies the target library.
+        fluidsynthlib
+
+        # Specifies the parameter you want to define.
+        PROPERTIES IMPORTED_LOCATION
+
+        # Provides the path to the library you want to import.
+       ${CMAKE_CURRENT_LIST_DIR}/../../app/src/main/jniLibs/${ANDROID_ABI}/libfluidsynth.so )
+
+ENDIF(ANDROID)
+
+IF(WINDOWS)
+
+set_target_properties( # Specifies the target library.
+        pdlib
+
+        # Specifies the parameter you want to define.
+        PROPERTIES IMPORTED_LOCATION
+
+        # Provides the path to the library you want to import.
+        ${CMAKE_CURRENT_LIST_DIR}/../pd.dll
+
+        )
+
+set_target_properties( # Specifies the target library.
+        fluidsynthlib
+
+        # Specifies the parameter you want to define.
+        PROPERTIES IMPORTED_LOCATION
+
+        # Provides the path to the library you want to import.
+       ${CMAKE_CURRENT_LIST_DIR}/../fluidsynth.dll )
+
+ENDIF(WINDOWS)
+
+
 
 
 #manipulate the filename output
-set_target_properties(fluidsynth-pd PROPERTIES PREFIX "")
-set_target_properties(fluidsynth-pd PROPERTIES OUTPUT_NAME "fluidsynth~")
-set_target_properties(fluidsynth-pd PROPERTIES SUFFIX ".pd_darwin")
-set_target_properties(fluidsynth-pd PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
+#set_target_properties(fluidsynth-pd PROPERTIES PREFIX "")
+#set_target_properties(fluidsynth-pd PROPERTIES OUTPUT_NAME "fluidsynth~")
+#set_target_properties(fluidsynth-pd PROPERTIES SUFFIX ".pd_darwin")
+#set_target_properties(fluidsynth-pd PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
 
+target_compile_definitions(${PROJECT_NAME} PUBLIC PD)
 
 	# Defines plateform specifix suffix and the linking necessities.
-	set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
-	if(${APPLE})
-		set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-		set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".pd_darwin")
-	elseif(${UNIX})
-		set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".pd_linux")
-	elseif(${WIN32})
-		set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".dll")
-		find_library(PD_LIBRARY NAMES pd HINTS ${PD_LIB_PATH})
-		target_link_libraries(${PROJECT_NAME} ${PD_LIBRARY})
-	endif()
+#	set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
+#	if(${APPLE})
+#		set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
+#		set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".pd_darwin")
+#	elseif(${UNIX})
+#		set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".pd_linux")
+#	elseif(${WIN32})
+#		set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".dll")
+#		find_library(PD_LIBRARY NAMES pd HINTS ${PD_LIB_PATH})
+#		target_link_libraries(${PROJECT_NAME} ${PD_LIBRARY})
+#	endif()
 
 
 
 target_link_libraries(
-        fluidsynth-pd
-        fluidsynth
+        ${PROJECT_NAME}
+        fluidsynthlib
+        pdlib
 )
