@@ -246,7 +246,7 @@ switch(argc){
         
         break;
     default:
-        error("error: three arguments are needed for note-in");
+        pd_error(x, "%s","error: three arguments are needed for note-in");
     }
 }
 
@@ -259,7 +259,7 @@ switch(argc){
         
         break;
     default:
-        error("error: two arguments are needed for pgm change");
+        pd_error( x, "%s","error: two arguments are needed for pgm change");
     }
 }
 
@@ -272,7 +272,7 @@ switch(argc){
         
         break;
     default:
-        error("error: three arguments are needed for control change");
+        pd_error(x, "%s","error: three arguments are needed for control change");
     }
 }
 

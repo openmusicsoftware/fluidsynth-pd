@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/fluidsynth-pd.iml" filepath="$PROJECT_DIR$/.idea/fluidsynth-pd.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/fluidsynth-pd2.iml" filepath="$PROJECT_DIR$/.idea/fluidsynth-pd2.iml" />
     </modules>
   </component>
 </project>
