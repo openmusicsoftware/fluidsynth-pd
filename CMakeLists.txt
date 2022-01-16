@@ -48,6 +48,10 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(libpd)
 
 if (ANDROID)
+    if(NOT DEFINED JNI_FOLDER_DIR)
+        message(FATAL_ERROR "error JNI_FOLDER_DIR must be defined")
+    endif(NOT DEFINED JNI_FOLDER_DIR)
+    set (ADDITIONAL_CLEAN_FILES "${JNI_FOLDER_DIR}")
     find_package(PkgConfig REQUIRED)
 
     set(FS_URL "https://github.com/FluidSynth/fluidsynth/releases/download/v2.2.4/fluidsynth-2.2.4-android24.zip")
@@ -61,14 +65,19 @@ if (ANDROID)
 
     FetchContent_MakeAvailable(fluidsynth)
 
-    set(ENV{PKG_CONFIG_PATH} "${fluidsynth_SOURCE_DIR}/lib/${CMAKE_ANDROID_ARCH_ABI}/pkgconfig")
-
-    pkg_search_module(FLUID REQUIRED fluidsynth)  # this looks for fluidsynth.pc file
+    add_library(FLUIDSYNTH SHARED IMPORTED)
+    set_target_properties(FLUIDSYNTH PROPERTIES
+        IMPORTED_LOCATION ${fluidsynth_SOURCE_DIR}/lib/${ANDROID_ABI}/libfluidsynth.so
+            )
 
     include_directories(
             ${libpd_SOURCE_DIR}/pure-data/src
             ${fluidsynth_SOURCE_DIR}/include
     )
+
+    file(COPY "${fluidsynth_SOURCE_DIR}/lib"
+            DESTINATION "${JNI_FOLDER_DIR}"
+            PATTERN "libfluidsynth.so" EXCLUDE)
 
 elseif(DARWIN)
 
@@ -112,7 +121,7 @@ set_target_properties(fluidsynth-pd PROPERTIES OUTPUT_NAME "fluidsynth~")
 	elseif(LINUX)
 		set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".pd_linux")
     elseif(ANDROID)
-        set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".pd_linux")
+        set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".so")
 	elseif(WINDOWS)
 		set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".dll")
 	endif()
@@ -120,7 +129,8 @@ set_target_properties(fluidsynth-pd PROPERTIES OUTPUT_NAME "fluidsynth~")
 if(ANDROID)
     target_link_libraries(
             ${PROJECT_NAME}
-            PkgConfig::FLUID
+            FLUIDSYNTH
+            libpd
     )
 
 elseif(DARWIN)
