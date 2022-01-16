@@ -64,12 +64,12 @@ if (ANDROID)
             libfluidsynth
             REQUIRED
             NO_CMAKE_PATH
-            PATHS ${fluidsynth_BINARY_DIR}
+            PATHS ${fluidsynth_SOURCE_DIR}
     )
 
     include_directories(
             ${libpd_SOURCE_DIR}/pure-data/src
-            ${fluidsynth_BINARY_DIR}/include
+            ${fluidsynth_SOURCE_DIR}/include
     )
 
 elseif(DARWIN)
