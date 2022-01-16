@@ -55,7 +55,7 @@ if (ANDROID)
     FetchContent_Declare(
             fluidsynth
             URL ${FS_URL}
-            URL_HASH ${FS_SHA256}
+            URL_HASH SHA256=${FS_SHA256}
     )
 
     FetchContent_MakeAvailable(fluidsynth)
