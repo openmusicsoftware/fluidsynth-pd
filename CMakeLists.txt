@@ -67,7 +67,7 @@ if (ANDROID)
 
     include_directories(
             ${libpd_SOURCE_DIR}/pure-data/src
-            ${fluidsynth_SOURCE_DIR}/include/fluidsynth
+            ${fluidsynth_SOURCE_DIR}/include
     )
 
 elseif(DARWIN)
