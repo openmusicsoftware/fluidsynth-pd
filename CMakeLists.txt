@@ -117,7 +117,15 @@ set_target_properties(fluidsynth-pd PROPERTIES OUTPUT_NAME "fluidsynth~")
 		set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".dll")
 	endif()
 
-target_link_libraries(
+if(ANDROID)
+    target_link_libraries(
+            ${PROJECT_NAME}
+            PkgConfig::FLUID
+    )
+
+elseif(DARWIN)
+    target_link_libraries(
         ${PROJECT_NAME}
         libfluidsynth
-)
+    )
+endif(ANDROID)
