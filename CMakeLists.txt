@@ -48,6 +48,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(libpd)
 
 if (ANDROID)
+    find_package(PkgConfig REQUIRED)
 
     set(FS_URL "https://github.com/FluidSynth/fluidsynth/releases/download/v2.2.4/fluidsynth-2.2.4-android24.zip")
     set(FS_SHA256 "dfc232369e9ce552b1903ef294357d5c39dc3b45c0b16bde891247f4178704dd")
@@ -60,16 +61,13 @@ if (ANDROID)
 
     FetchContent_MakeAvailable(fluidsynth)
 
-    find_package(
-            libfluidsynth
-            REQUIRED
-            NO_CMAKE_PATH
-            PATHS ${fluidsynth_BINARY_DIR}
-    )
+    set(ENV{PKG_CONFIG_PATH} "${fluidsynth_SOURCE_DIR}/lib/${CMAKE_ANDROID_ARCH_ABI}/pkgconfig")
+
+    pkg_search_module(FLUID REQUIRED fluidsynth)  # this looks for fluidsynth.pc file
 
     include_directories(
             ${libpd_SOURCE_DIR}/pure-data/src
-            ${fluidsynth_BINARY_DIR}/include
+            ${FLUID_INCLUDE_DIRS}
     )
 
 elseif(DARWIN)
