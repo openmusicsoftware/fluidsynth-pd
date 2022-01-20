@@ -40,7 +40,7 @@ set(CMAKE_TLS_VERIFY true)
 
 FetchContent_Declare(
         libpd
-        GIT_REPOSITORY git@github.com:MaplePost/libpd.git
+        GIT_REPOSITORY git@github.com:libpd/libpd.git
         GIT_TAG        origin/master
         GIT_SUBMODULES "pure-data"
 )
